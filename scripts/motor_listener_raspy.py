@@ -132,19 +132,19 @@ class TwistToMotors():
 
       if direccion_right == 'f':
          Giro_Favor_Reloj_MotorA()
-         print("motor A, CW, vel="+velocidad_right)
+         rospy.loginfo("motor A, CW, vel=%f", velocidad_right)
       elif direccion_right == 'r':
          Giro_Contra_Reloj_MotorA()
-         print("motor A, CCW, vel="+velocidad_right)
+         rospy.loginfo("motor A, CCW, vel=%f", velocidad_right)
 
       pwm_a.ChangeDutyCycle(int(velocidad_right))
 
       if direccion_left == 'f':
          Giro_Favor_Reloj_MotorB()
-         print("motor B, CW, vel="+velocidad_left)
+         rospy.loginfo("motor B, CW, vel=%f", velocidad_left)
       elif direccion_left == 'r':
          Giro_Contra_Reloj_MotorB()
-         print("motor B, CW, vel="+velocidad_left)
+         rospy.loginfo("motor B, CW, vel=%f", velocidad_left)
 
       pwm_b.ChangeDutyCycle(int(velocidad_left))
 
