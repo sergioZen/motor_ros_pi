@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+   <node pkg="motor_ros_pi" name="servomotor_listener_raspy" type="servomotor_percentagevelocities_listener_raspy.py" output="screen"/> 
+
+</launch>

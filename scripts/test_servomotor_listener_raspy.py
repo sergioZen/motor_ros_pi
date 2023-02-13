@@ -4,13 +4,14 @@ import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-
-import rospy
-import roslib
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
 
-heading = 360
+import pigpio
+import time
+
+servoPINLeft = 18
+servoPINRight = 17
 
 #############################################################
 #############################################################
@@ -37,6 +38,7 @@ class TwistToMotors():
         self.timeout_ticks = rospy.get_param("~timeout_ticks", 2)
         self.left = 0
         self.right = 0
+         
         
     #############################################################
     def spin(self):
@@ -48,31 +50,57 @@ class TwistToMotors():
         self.ticks_since_target = self.timeout_ticks
     
         ###### main loop  ######
-        while not rospy.is_shutdown():
-        
-            while not rospy.is_shutdown() and self.ticks_since_target < self.timeout_ticks:
-                self.spinOnce()
-                r.sleep()
-            idle.sleep()
-                
-    #############################################################
-    def spinOnce(self):
-    #############################################################
-    
-        # dx = (l + r) / 2
-        # dr = (r - l) / w
+        # ServoMotor 3606HB: 0.16 s (4.8V) ¦ 0.14 s (6.0V)
+        # Using hardware:            PWM
+        # Idle timeout:         Disabled
+        # Number of servos:            1
+        # Servo cycle time:        20000us
+        # Pulse width units:          10us
+        # Minimum width value:        0.8 (800us)
+        # Maximum width value:        2.2 (2200us)
+        # Output levels:          Normal
+        # Real Voltage received in the servomotor: 5 V
+        #########################################################
 
-        rospy.loginfo("dx, dr, w: [%f, %f, %f]"%(self.dx, self.dr, self.w))
+        freq = 1 / 50
 
-        self.right = float(1.0) * float(self.dx) + self.dr * self.w / 2 
-        self.left = float(1.0) * float(self.dx) - self.dr * self.w / 2
+        # Stop at:  
+        stop_duty = (2.2 - 0.8)/2 + 0.8 # 1.5 ms for center
 
-        rospy.loginfo("publishing: (%f, %f)", self.left, self.right) 
-                
-        self.pub_lmotor.publish(self.left)
-        self.pub_rmotor.publish(self.right)
+        pi = pigpio.pi()
+        pi.set_servo_pulsewidth(servoPINLeft, 0)
+        pi.set_servo_pulsewidth(servoPINRight, 0)
+        time.sleep(2)
+
+        for i in range(5,15):
+            duty = i*100
+            pi.set_servo_pulsewidth(servoPINLeft, duty)
+            pi.set_servo_pulsewidth(servoPINRight, duty)
+            time.sleep(2)
             
-        self.ticks_since_target += 1
+        pi.set_servo_pulsewidth(servoPINLeft, 0)
+        pi.set_servo_pulsewidth(servoPINRight, 0)
+        time.sleep(2)
+
+        pi.set_servo_pulsewidth(servoPINLeft, 1500)
+        pi.set_servo_pulsewidth(servoPINRight, 1500)
+        time.sleep(2)  
+
+        pi.set_servo_pulsewidth(servoPINLeft, 0)
+        pi.set_servo_pulsewidth(servoPINRight, 0)
+
+        time.sleep(2)              
+
+        for i in range(16,25):
+            duty = i*100
+            pi.set_servo_pulsewidth(servoPINLeft, duty)
+            pi.set_servo_pulsewidth(servoPINRight, duty)
+            time.sleep(2)
+            
+        pi.set_servo_pulsewidth(servoPINLeft, 0)
+        pi.set_servo_pulsewidth(servoPINRight, 0)
+
+        time.sleep(2)
 
     #############################################################
     def twistCallback(self,msg):
@@ -86,7 +114,7 @@ class TwistToMotors():
         self.dx = msg.linear.x
         self.dr = msg.angular.z
         self.dy = msg.linear.y
-    
+
 #############################################################
 #############################################################
 if __name__ == '__main__':
@@ -94,7 +122,9 @@ if __name__ == '__main__':
     try:
         twistToMotors = TwistToMotors()
         twistToMotors.spin()
+        twistToMotors.p.stop()
     except rospy.ROSInterruptException:
         pass
+
 
 #rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)

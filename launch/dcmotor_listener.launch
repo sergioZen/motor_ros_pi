@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+   <node pkg="motor_ros_pi" name="dcmotor_listener_raspy" type="dcmotor_listener_raspy.py" output="screen"/> 
+
+</launch>
